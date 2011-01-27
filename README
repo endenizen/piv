@@ -1,0 +1,38 @@
+This is a rough attempt at a CLI for Pivotal Tracker. I do not claim that it works the way you would like, or at all. It may in fact eat your entire project. Now that that is out of the way...
+
+There isn't currently a config file (that's coming later) so just modify the variables near the top of the script to the values you would like to use. If you're wondering where your PT API token is, try this page: https://www.pivotaltracker.com/profile
+
+If you would like to contribute, please do so and send me a pull request.
+
+Goals:
+
+To create an easy-to-use, fast, and feature complete (heck, lets add *more* features, cross-project search anyone?) CLI implementation of Pivotal Tracker. The current interface is loosely based on the flow of heroku and git (and other projects, but I've used those recently so I remember their names). Eg (most of the following examples aren't yet implemented):
+
+piv list
+  list all stories
+
+piv list -m
+  list all stories owned by me
+
+piv search food
+  list all stories matching the string "food"
+
+piv create -n "Fix the broken nacelle"
+  create a new story with the name "Fix the broken nacelle" using configured defaults for some other fields
+
+piv create -n "Fix the broken nacelle" -t chore
+  same as above but create the story as a chore (instead of the default)
+
+piv projects
+  list the projects on my account
+
+piv use 29339
+  change the active project to 29339
+
+Many of these features are simpler to use than their web-based counterparts. Some simply don't exist at all (setting story "defaults").
+
+Similar to the git workflow (where many commands are long, and very suitable for aliasing) the intention with piv is that you can create little scripts to automate your personal habits. Use cases include:
+
+- Create many stories at once for a larger feature
+- Write a cron job to email you when a story hasn't seen any activity in a month
+- Integrate with your git workflow by creating a new branch based on a story and marking it complete when you merge and delete the branch
