@@ -1,0 +1,8 @@
+[general]
+token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+project=00000
+
+[defaults]
+name=Bob Jones
+desc=Created by piv
+labels=label1,label2
