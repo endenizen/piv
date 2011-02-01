@@ -4,13 +4,17 @@ from xml.dom import minidom
 import sys
 import getopt
 import re
+import ConfigParser
 
-MY_TOKEN = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-PROJECT_ID = '00000'
+Config = ConfigParser.ConfigParser()
+Config.read('piv.conf')
 
-DEFAULT_NAME = 'Bob Jones'
-DEFAULT_DESCRIPTION = 'Created by piv'
-DEFAULT_LABELS = 'label1, label2'
+MY_TOKEN = Config.get('general', 'token')
+PROJECT_ID = Config.get('general', 'project')
+
+DEFAULT_NAME = Config.get('defaults', 'name')
+DEFAULT_DESCRIPTION = Config.get('defaults', 'desc')
+DEFAULT_LABELS = Config.get('defaults', 'labels')
 
 def getProject(id):
   url = "https://www.pivotaltracker.com/services/v3/projects/%s" % id
