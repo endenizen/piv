@@ -34,7 +34,12 @@ def usage():
 """
 
 def main(argv):
-  piv = Pivotal(MY_TOKEN, PROJECT_ID)
+  defaults = {
+    'name': DEFAULT_NAME,
+    'description': DEFAULT_DESCRIPTION,
+    'labels': DEFAULT_LABELS
+  }
+  piv = Pivotal(MY_TOKEN, PROJECT_ID, defaults)
 
   if len(argv) == 0:
     usage()
