@@ -94,9 +94,20 @@ def main(argv):
         pass
 
   elif command == 'search':
-    search = " ".join(sys.argv[2:])
+    try:
+      opts, args = getopt.getopt(new_args, "l:", ["limit="])
+    except getopt.GetoptError:
+      usage()
+      sys.exit(2)
+
+    limit = 99
+    for opt, arg in opts:
+      if opt in ("-l", "--limit"):
+        limit = int(arg)
+
+    search = " ".join(args)
     matches = piv.search(search)
-    for match in matches:
+    for match in matches[:limit]:
       print storySummary(match)
 
 if __name__ == "__main__":
