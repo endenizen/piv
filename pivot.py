@@ -1,83 +1,23 @@
-import urllib
-import urllib2
-from xml.dom import minidom
-import sys
-import getopt
-import re
-import ConfigParser
+from pivotal import Pivotal
+import sys, getopt, re, ConfigParser
 
 Config = ConfigParser.ConfigParser()
 Config.read('piv.conf')
 
 MY_TOKEN = Config.get('general', 'token')
-PROJECT_ID = Config.get('general', 'project')
+PROJECT_ID = Config.getint('general', 'project')
 
 DEFAULT_NAME = Config.get('defaults', 'name')
 DEFAULT_DESCRIPTION = Config.get('defaults', 'desc')
 DEFAULT_LABELS = Config.get('defaults', 'labels')
 
-def getProject(id):
-  url = "https://www.pivotaltracker.com/services/v3/projects/%s" % id
-  req = urllib2.Request(url, None, {'X-TrackerToken': MY_TOKEN})
-  response = urllib2.urlopen(req)
-  dom = minidom.parseString(response.read())
-
-  doc = dom.getElementsByTagName('project')[0]
-
-  project = {
-      'name'              : doc.getElementsByTagName('name')[0].firstChild.data,
-      'iteration_length'  : doc.getElementsByTagName('iteration_length')[0].firstChild.data,
-      'week_start_day'    : doc.getElementsByTagName('week_start_day')[0].firstChild.data,
-      'point_scale'       : doc.getElementsByTagName('point_scale')[0].firstChild.data
-      }
-
-  return project
-
-def filterByProject(s, id):
-  url = "https://www.pivotaltracker.com/services/v3/projects/%s/stories?filter=%s" % (id, urllib.quote(s))
-  req = urllib2.Request(url, None, {'X-TrackerToken': MY_TOKEN})
-  response = urllib2.urlopen(req)
-  dom = minidom.parseString(response.read())
-
-  doc = dom.getElementsByTagName('story')
-
-  return doc
-
-def getStringsFromDom(dom, lst):
-  rv = []
-  for s in lst:
-    pot = dom.getElementsByTagName(s)
-    if len(pot) > 0 and pot[0].firstChild != None:
-      rv.append(pot[0].firstChild.data)
-    else:
-      rv.append('')
-  return rv
-
 def storySummary(story):
-  [name, desc, req, own] = getStringsFromDom(story, ['name', 'description', 'requested_by', 'owned_by'])
-  id = story.childNodes[1].firstChild.data
-  s = '%s: %s\n' % (id, name)
-  if desc != '':
-    s = s + 'Desc: %s\n' % desc
-  s = s + 'Req/Own: %s/%s\n' % (req, own)
-  s = s + 'Url: %s\n' % "http://www.pivotaltracker.com/story/show/%s" % id
+  s = '%d: %s\n' % (story.id, story.name)
+  if story.description != '':
+    s = s + 'Desc: %s\n' % story.description
+  s = s + 'Req/Own: %s/%s\n' % (story.requested_by, story.owned_by)
+  s = s + 'Url: %s\n' % "http://www.pivotaltracker.com/story/show/%s" % str(story.id)
   return s
-
-def createStory(title, story_type, extra_labels=[]):
-  url = "https://www.pivotaltracker.com/services/v3/projects/%s/stories" % PROJECT_ID
-  story = "<story>"
-  story = story + "<story_type>%s</story_type><name>%s</name><requested_by>%s</requested_by><owned_by>%s</owned_by><description>%s</description>" % (story_type, title, DEFAULT_NAME, DEFAULT_NAME, DEFAULT_DESCRIPTION)
-  labels = DEFAULT_LABELS
-  if len(extra_labels) > 0:
-    labels = labels + ", " + ", ".join(extra_labels)
-  story = story + "<labels>%s</labels>" % labels
-  story = story + "</story>"
-  req = urllib2.Request(url, story, {'X-TrackerToken': MY_TOKEN, 'Content-type': 'application/xml'})
-  response = urllib2.urlopen(req)
-  s = response.read()
-  print s
-  dom = minidom.parseString(s)
-  return dom
 
 def usage():
   print """
@@ -94,6 +34,8 @@ def usage():
 """
 
 def main(argv):
+  piv = Pivotal(MY_TOKEN, PROJECT_ID)
+
   if len(argv) == 0:
     usage()
     sys.exit(2)
@@ -134,8 +76,7 @@ def main(argv):
       usage()
       sys.exit(2)
 
-    story = createStory(name, story_type, extra_labels)
-    #print story
+    story = piv.create(name, story_type, extra_labels)
     print storySummary(story)
 
   elif command == 'list':
@@ -154,7 +95,7 @@ def main(argv):
 
   elif command == 'search':
     search = " ".join(sys.argv[2:])
-    matches = filterByProject(search, PROJECT_ID)
+    matches = piv.search(search)
     for match in matches:
       print storySummary(match)
 
